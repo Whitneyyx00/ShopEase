@@ -1,0 +1,72 @@
+// Pages/Products.razor
+@page "/products"
+@using ShopEase.Client.Models
+@using ShopEase.Client.Components
+@using ShopEase.Client.Services
+
+<h1>Products</h1>
+
+<div class="row">
+    <div class="col-md-3">
+        <h3>Filter Products</h3>
+        <div class="form-group">
+            <label for="searchTerm">Search:</label>
+            <input type="text" class="form-control" id="searchTerm" @bind="searchTerm" @bind:event="oninput" />
+        </div>
+        <div class="form-group">
+            <label for="minPrice">Min Price:</label>
+            <input type="number" class="form-control" id="minPrice" @bind="minPrice" @bind:event="oninput" />
+        </div>
+        <div class="form-group">
+            <label for="maxPrice">Max Price:</label>
+            <input type="number" class="form-control" id="maxPrice" @bind="maxPrice" @bind:event="oninput" />
+        </div>
+        <button class="btn btn-primary" @onclick="SearchProducts">Search</button>
+    </div>
+
+    <div class="col-md-9">
+        @if (products == null)
+        {
+            <p><em>Loading...</em></p>
+        }
+        else
+        {
+            <div class="row">
+                @foreach (var product in products)
+                {
+                    <div class="col-md-4 mb-3">
+                        <ProductCard Product="product" />
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<Product>? products;
+    private string? searchTerm;
+    private decimal? minPrice;
+    private decimal? maxPrice;
+
+    [Inject]
+    private IProductService? ProductService { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProducts();
+    }
+
+    private async Task SearchProducts()
+    {
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        if (ProductService != null)
+        {
+            products = await ProductService.GetProductsAsync(searchTerm, minPrice, maxPrice);
+        }
+    }
+}

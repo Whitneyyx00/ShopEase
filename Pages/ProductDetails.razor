@@ -1,0 +1,35 @@
+// Pages/ProductDetails.razor
+@page "/product/{id:int}"
+@using ShopEase.Client.Models
+@using ShopEase.Client.Services
+
+@if (product == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <h1>@product.Name</h1>
+    <img src="@product.ImageUrl" alt="@product.Name" />
+    <p>@product.Description</p>
+    <p>Price: $@product.Price</p>
+    <button class="btn btn-primary">Add to Cart</button>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Product? product;
+
+    [Inject]
+    private IProductService? ProductService { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ProductService != null)
+        {
+            product = await ProductService.GetProductAsync(Id);
+        }
+    }
+}

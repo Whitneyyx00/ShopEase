@@ -1,0 +1,36 @@
+// Components/ShoppingCart.razor
+@using ShopEase.Client.Models
+
+<h3>Shopping Cart</h3>
+
+@if (CartItems == null || CartItems.Count == 0)
+{
+    <p>Your cart is empty.</p>
+}
+else
+{
+    <ul>
+        @foreach (var item in CartItems)
+        {
+            <li>
+                @item.Product.Name - Quantity: @item.Quantity - Price: $@(item.Product.Price * item.Quantity)
+                <button class="btn btn-sm btn-danger" @onclick="() => RemoveFromCart(item.Product)">Remove</button>
+            </li>
+        }
+    </ul>
+    <p>Total: $@CartItems.Sum(item => item.Product.Price * item.Quantity)</p>
+    <button class="btn btn-primary">Checkout</button>
+}
+
+@code {
+    [Parameter]
+    public List<(Product Product, int Quantity)>? CartItems { get; set; }
+
+    [Parameter]
+    public EventCallback<Product> OnRemoveFromCart { get; set; }
+
+    private async Task RemoveFromCart(Product product)
+    {
+        await OnRemoveFromCart.InvokeAsync(product);
+    }
+}

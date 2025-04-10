@@ -1,0 +1,21 @@
+@page "/login"
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+@using Microsoft.AspNetCore.Components.Authorization;
+@using Microsoft.AspNetCore.Authorization;
+
+<h1>Log in</h1>
+<p>Log in to access your orders and manage your account.</p>
+
+<AuthorizeView>
+    <NotAuthorized>
+        <a class="btn btn-primary" href="authentication/login">Log in</a>
+    </NotAuthorized>
+    <Authorized>
+        <p>You are already logged in.</p>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    [Inject]
+    public NavigationManager? Navigation { get; set; }
+}

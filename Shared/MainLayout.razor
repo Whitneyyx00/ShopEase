@@ -1,0 +1,46 @@
+// Shared/MainLayout.razor
+@inherits LayoutComponentBase;
+@using ShopEase.Client.Shared;
+@using ShopEase.Client.Components;
+@using ShopEase.Client.Services;
+@implements IDisposable;
+@inject INotificationService NotificationService;
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+        </div>
+
+        <article class="content px-4">
+            <Notification Message="@notificationMessage" AlertType="@notificationType" />
+            @Body
+        </article>
+    </main>
+</div>
+
+@code {
+    private string? notificationMessage;
+    private string? notificationType;
+
+    protected override void OnInitialized()
+    {
+        NotificationService.OnShow += ShowNotification;
+    }
+
+    private void ShowNotification(string message, NotificationType type)
+    {
+        notificationMessage = message;
+        notificationType = type.ToString().ToLower();
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NotificationService.OnShow -= ShowNotification;
+    }
+}

@@ -1,0 +1,64 @@
+@page "/account/register"
+@using ShopEase.Client.Models
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.Components.Forms
+
+<h1>Register</h1>
+
+@if (ShowRegistrationForm)
+{
+    <EditForm Model="@registerModel" OnValidSubmit="@RegisterUser">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="Username">Username:</label>
+            <InputText id="Username" class="form-control" @bind-Value="registerModel.Username" />
+        </div>
+
+        <div class="form-group">
+            <label for="Email">Email:</label>
+            <InputText id="Email" class="form-control" @bind-Value="registerModel.Email" />
+        </div>
+
+        <div class="form-group">
+            <label for="Password">Password:</label>
+            <InputText type="password" id="Password" class="form-control" @bind-Value="registerModel.Password" />
+        </div>
+
+        <div class="form-group">
+            <label for="ConfirmPassword">Confirm Password:</label>
+            <InputText type="password" id="ConfirmPassword" class="form-control" @bind-Value="registerModel.ConfirmPassword" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Register</button>
+    </EditForm>
+}
+else
+{
+    <p>Registration successful! Redirecting to login...</p>
+}
+
+@code {
+    private RegisterModel registerModel = new RegisterModel();
+    private bool ShowRegistrationForm = true;
+
+    private async Task RegisterUser()
+    {
+        var response = await Http.PostAsJsonAsync("api/Account/Register", registerModel);
+
+        if (response.IsSuccessStatusCode)
+        {
+            ShowRegistrationForm = false;
+            await Task.Delay(3000); // Delay for 3 seconds
+            NavigationManager.NavigateTo("/account/login");
+        }
+        else
+        {
+            // Handle registration errors
+            Console.WriteLine($"Registration failed: {response.StatusCode}");
+        }
+    }
+}

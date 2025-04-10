@@ -1,0 +1,17 @@
+// Components/Notification.razor
+@using ShopEase.Client.Services
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <div class="alert @AlertType">
+        @Message
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? Message { get; set; }
+
+    [Parameter]
+    public string? AlertType { get; set; }
+}

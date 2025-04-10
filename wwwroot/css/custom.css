@@ -1,0 +1,36 @@
+/* wwwroot/css/custom.css */
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+.notification {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+.notification.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.notification.info {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.notification.warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.notification.error {
+    background-color: #f8d7da;
+    color: #721c24;
+}

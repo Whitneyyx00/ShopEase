@@ -1,0 +1,23 @@
+// Pages/Register.razor
+@page "/register"
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+@using Microsoft.AspNetCore.Components.Authorization;
+@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.AspNetCore.Components;
+
+<h1>Register</h1>
+<p>Create a new account to start shopping.</p>
+
+<AuthorizeView>
+    <NotAuthorized>
+        <a class="btn btn-primary" href="authentication/register">Register</a>
+    </NotAuthorized>
+    <Authorized>
+        <p>You are already logged in.</p>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    [Inject]
+    public NavigationManager? Navigation { get; set; }
+}

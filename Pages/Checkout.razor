@@ -1,0 +1,34 @@
+// Pages/Checkout.razor
+@page "/checkout"
+@using ShopEase.Client.Services
+@inject IPaymentService PaymentService
+
+<h3>Checkout</h3>
+
+<p>Total amount: $@totalAmount</p>
+
+<button class="btn btn-primary" @onclick="CreatePayment">Pay with Stripe</button>
+
+@if (!string.IsNullOrEmpty(paymentIntentId))
+{
+    <p>Payment Intent ID: @paymentIntentId</p>
+}
+
+@code {
+    private decimal totalAmount = 100.00M; // Replace with your cart total
+    private string? paymentIntentId;
+
+    private IPaymentService? _paymentService { get; set; }
+
+    private async Task CreatePayment()
+    {
+        if (_paymentService != null)
+        {
+            paymentIntentId = await _paymentService.CreatePaymentIntent(totalAmount, "usd");
+        }
+        else
+        {
+            throw new InvalidOperationException("PaymentService is not initialized.");
+        }
+    }
+}
