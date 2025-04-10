@@ -1,87 +1,77 @@
-// Services/OrderService.cs
-using ShopEase.Client.Models;
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
+using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
+using ShopEase.Api.Data;
+using ShopEase.Api.Models;
 
-namespace ShopEase.Client.Services
+namespace ShopEase.Api.Services
 {
     public class OrderService : IOrderService
     {
-        private readonly HttpClient _httpClient;
-        private readonly string? _apiBaseUrl;
+        private readonly ApplicationDbContext _context;
 
-        public OrderService(HttpClient httpClient, IConfiguration configuration)
+        public OrderService(ApplicationDbContext context)
         {
-            _httpClient = httpClient;
-            _apiBaseUrl = configuration["ApiBaseUrl"];
+            _context = context;
         }
 
-        public async Task<List<Order>> GetOrdersAsync()
+        public async Task<IEnumerable<Order>> GetOrdersAsync(string userId)
         {
-            if (string.IsNullOrEmpty(_apiBaseUrl))
-            {
-                Console.WriteLine("ApiBaseUrl is not configured.");
-                return new List<Order>();
-            }
-            return await _httpClient.GetFromJsonAsync<List<Order>>($"{_apiBaseUrl}/api/Order") ?? new List<Order>();
+            return await _context.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+                .Where(o => o.UserId == userId)
+                .ToListAsync();
         }
 
-        public async Task<Order> GetOrderAsync(int orderId)
+        public async Task<Order> GetOrderAsync(int id, string userId)
         {
-            if (string.IsNullOrEmpty(_apiBaseUrl))
+            return await _context.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+                .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
+        }
+
+        public async Task<Order> CreateOrderAsync(string userId, string shippingAddress, string paymentMethod)
+        {
+            var cart = await _context.Carts
+                .Include(c => c.CartItems)
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+
+            if (cart == null || cart.CartItems.Count == 0)
             {
-                Console.WriteLine("ApiBaseUrl is not configured.");
-                throw new InvalidOperationException("ApiBaseUrl is not configured.");
+                throw new InvalidOperationException("Cart is empty");
             }
-            var order = await _httpClient.GetFromJsonAsync<Order>($"{_apiBaseUrl}/api/Order/{orderId}");
-            if (order == null)
+
+            var order = new Order
             {
-                throw new InvalidOperationException("Order not found or response was null.");
+                UserId = userId,
+                OrderDate = DateTime.UtcNow,
+                TotalAmount = cart.CartItems.Sum(item => item.Price * item.Quantity),
+                Status = "Pending",
+                ShippingAddress = shippingAddress,
+                PaymentMethod = paymentMethod
+            };
+
+            foreach (var cartItem in cart.CartItems)
+            {
+                var orderItem = new OrderItem
+                {
+                    ProductId = cartItem.ProductId,
+                    Quantity = cartItem.Quantity,
+                    Price = cartItem.Price,
+                    Product = cartItem.Product
+                };
+                order.OrderItems.Add(orderItem);
+                _context.CartItems.Remove(cartItem); // Remove cart item after adding to order
             }
+            cart.CartItems.Clear();
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+
             return order;
-        }
-
-        public async Task CreateOrderAsync(Order order)
-        {
-            if (string.IsNullOrEmpty(_apiBaseUrl))
-            {
-                Console.WriteLine("ApiBaseUrl is not configured.");
-                return;
-            }
-            await _httpClient.PostAsJsonAsync($"{_apiBaseUrl}/api/Order", order);
-        }
-
-        public async Task UpdateOrderAsync(Order order)
-        {
-            if (string.IsNullOrEmpty(_apiBaseUrl))
-            {
-                Console.WriteLine("ApiBaseUrl is not configured.");
-                return;
-            }
-
-            var json = JsonSerializer.Serialize(order);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PutAsync($"{_apiBaseUrl}/api/Order/{order.Id}", content);
-            response.EnsureSuccessStatusCode();
-        }
-
-        public async Task DeleteOrderAsync(int orderId)
-        {
-            if (string.IsNullOrEmpty(_apiBaseUrl))
-            {
-                Console.WriteLine("ApiBaseUrl is not configured.");
-                return;
-            }
-
-            var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/api/Order/{orderId}");
-            response.EnsureSuccessStatusCode();
         }
     }
 }

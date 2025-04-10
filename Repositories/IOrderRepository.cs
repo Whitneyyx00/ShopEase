@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using ShopEase.Api.Models;
 
-namespace ShopEase.Api.Services
+namespace ShopEase.Api.Repositories
 {
-    public interface IOrderService
+    public interface IOrderRepository
     {
         Task<IEnumerable<Order>> GetOrdersAsync(string userId);
         Task<Order> GetOrderAsync(int id, string userId);
-        Task<Order> CreateOrderAsync(string userId, string shippingAddress, string paymentMethod);
+        Task<Order> CreateOrderAsync(Order order);
     }
 }

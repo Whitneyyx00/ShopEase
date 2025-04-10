@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -5,13 +6,13 @@ using Microsoft.EntityFrameworkCore;
 using ShopEase.Api.Data;
 using ShopEase.Api.Models;
 
-namespace ShopEase.Api.Services
+namespace ShopEase.Api.Repositories
 {
-    public class ProductService : IProductService
+    public class ProductRepository : IProductRepository
     {
         private readonly ApplicationDbContext _context;
 
-        public ProductService(ApplicationDbContext context)
+        public ProductRepository(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -50,47 +51,20 @@ namespace ShopEase.Api.Services
             return product;
         }
 
-        public async Task UpdateProductAsync(int id, Product product)
+        public async Task UpdateProductAsync(Product product)
         {
-            if (id != product.Id)
-            {
-                throw new ArgumentException("ID mismatch");
-            }
-
             _context.Entry(product).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ProductExists(id))
-                {
-                    throw new KeyNotFoundException("Product not found");
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteProductAsync(int id)
         {
             var product = await _context.Products.FindAsync(id);
-            if (product == null)
+            if (product != null)
             {
-                throw new KeyNotFoundException("Product not found");
+                _context.Products.Remove(product);
+                await _context.SaveChangesAsync();
             }
-
-            _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
-        }
-
-        private bool ProductExists(int id)
-        {
-            return _context.Products.Any(e => e.Id == id);
         }
     }
 }
